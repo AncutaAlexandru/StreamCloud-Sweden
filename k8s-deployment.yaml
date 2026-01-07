@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamcloud-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streamcloud-player
+  template:
+    metadata:
+      labels:
+        app: streamcloud-player
+    spec:
+      containers:
+      - name: streamcloud-player
+        # INLOCUIESTE streamcloudreg26940 DACA AI ALT NUME LA REGISTRY
+        image: streamcloudreg26940.azurecr.io/streamcloud-player:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: streamcloud-service
+spec:
+  # LoadBalancer ne da un IP Public real
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: streamcloud-player

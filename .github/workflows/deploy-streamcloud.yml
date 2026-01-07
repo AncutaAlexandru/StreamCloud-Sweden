@@ -1,0 +1,49 @@
+name: StreamCloud Sweden CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  # Numele registrului tau de containere (ACR)
+  ACR_NAME: streamcloudreg26940
+  # Numele clusterului tau din Suedia
+  CLUSTER_NAME: streamcloudaks
+  # Grupul de resurse din Suedia
+  RESOURCE_GROUP: StreamCloudRG_Sweden
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Autentificare in Azure (folosind Secretul)
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # 2. Autentificare in Docker Registry (ACR)
+    - name: ACR Login
+      run: az acr login --name $ACR_NAME
+
+    # 3. Construire si Urcare imagine (Build & Push)
+    - name: Build and Push Docker Image
+      run: |
+        docker build . -t $ACR_NAME.azurecr.io/streamcloud-player:${{ github.run_number }}
+        docker push $ACR_NAME.azurecr.io/streamcloud-player:${{ github.run_number }}
+
+    # 4. Conectare la Kubernetes (AKS)
+    - name: Set AKS Context
+      uses: azure/aks-set-context@v3
+      with:
+        resource-group: ${{ env.RESOURCE_GROUP }}
+        cluster-name: ${{ env.CLUSTER_NAME }}
+
+    # 5. Actualizare Site (Deploy)
+    - name: Deploy to Kubernetes
+      run: |
+        sed -i "s|image: .*|image: $ACR_NAME.azurecr.io/streamcloud-player:${{ github.run_number }}|g" k8s-deployment.yaml
+        kubectl apply -f k8s-deployment.yaml

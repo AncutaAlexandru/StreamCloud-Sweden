@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: streamcloud-player
-        # INLOCUIESTE streamcloudreg26940 DACA AI ALT NUME LA REGISTRY
+        
         image: streamcloudreg26940.azurecr.io/streamcloud-player:latest
         ports:
         - containerPort: 80

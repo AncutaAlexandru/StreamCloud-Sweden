@@ -24,7 +24,6 @@ kind: Service
 metadata:
   name: streamcloud-service
 spec:
-  # LoadBalancer ne da un IP Public real
   type: LoadBalancer
   ports:
   - port: 80
